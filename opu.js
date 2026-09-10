@@ -262,34 +262,37 @@
 
   /* прецизионный перекрёстный ролик, тонкие кольца */
   function scenePrecisionCR(v) {
-    var xo0 = 250, xo1 = 330, xi0 = 356, xi1 = 640, y0 = 250, y1 = 330;
+    var xo0 = 236, xo1 = 300, xi0 = 336, xi1 = 640, y0 = 240, y1 = 340;
     var s = hatchRect(xo0, y0, xo1 - xo0, y1 - y0) + hatchRect(xi0, y0, xi1 - xi0, y1 - y0);
     var cx = (xo1 + xi0) / 2, cy = (y0 + y1) / 2;
-    s += white(cx - 26, cy - 26, 52, 52) + roller(cx, cy, 22);
-    s += thin('M' + xo0 + ',' + (y0 + 6) + ' h-8 M' + xo0 + ',' + (y1 - 6) + ' h-8');
+    s += white(cx - 30, y0 + 2, 60, y1 - y0 - 4) + roller(cx, cy, 30);
+    s += thin('M' + (xo0 - 3) + ',' + (y0 + 8) + ' a8,8 0 0 1 8,-8 M' + (xo0 - 3) + ',' + (y1 - 8) + ' a8,8 0 0 0 8,8');
+    s += '<text class="k-tiny" x="' + (xo0 - 14) + '" y="' + (y0 + 4) + '">r</text>';
     var dims = [
       { k: 'D', x: xo0, side: 'top' }, { k: 'Dp', x: cx, side: 'top' }, { k: 'd', x: xi0, side: 'top' },
-      { k: 'ds', x: xi0 + 30, side: 'bottom' }, { k: 'dh', x: xo0 + 40, side: 'bottom' }
+      { k: 'dh', x: xo0 + 32, side: 'bottom' }, { k: 'ds', x: xi0 + 40, side: 'bottom' }
     ];
-    return { svg: s, dims: dims, vdims: [{ k: 'B', y0: y0, y1: y1, x: 200, side: 'left', ext: xo0 }], yTop: y0, yBot: y1 };
+    return { svg: s, dims: dims, vdims: [{ k: 'B', y0: y0, y1: y1, x: 190, side: 'left', ext: xo0 }], yTop: y0, yBot: y1 };
   }
   /* прецизионный для поворотных столов, YRT */
   function sceneYRT(v) {
     var s = '';
-    var xo0 = 230, xo1 = 330, xi0 = 356, xi1 = 640;
-    s += hatchPath('M' + xo0 + ',230 H' + xo1 + ' V350 H' + xo0 + ' z');
-    s += hatchPath('M' + xi0 + ',250 H' + xi1 + ' V330 H' + xi0 + ' z');
-    s += white(xo1 - 6, 244, xi0 - xo1 + 12, 92);
-    s += rollBox(xo1 - 2, 252, 30, 16) + rollBox(xo1 - 2, 312, 30, 16) + rollBox(xo1 + 4, 278, 16, 24);
-    s += hole('through', 280, 230, 350, 14); s += holeLabel(280, 350, 'Ø' + fmt(v.oe), true);
-    s += hole('through', 420, 250, 330, 14); s += holeLabel(420, 330, 'Ø' + fmt(v.oi), true);
+    var xo0 = 226, xo1 = 330, xi0 = 356, xi1 = 640;
+    // наружное кольцо в два яруса, внутреннее тонкое, как на странице каталога
+    s += hatchPath('M' + xo0 + ',236 H' + xo1 + ' V344 H' + xo0 + ' z');
+    s += hatchPath('M' + xi0 + ',256 H' + xi1 + ' V324 H' + xi0 + ' z');
+    s += white(xo1 - 8, 244, xi0 - xo1 + 16, 92);
+    s += rollBox(xo1 - 4, 250, 34, 16) + rollBox(xo1 - 4, 314, 34, 16) + rollBox(xo1 + 4, 276, 14, 28);
+    s += thin('M' + (xo1 - 8) + ',290 h' + (xi0 - xo1 + 16));
+    s += hole('through', 278, 236, 344, 14); s += holeLabel(278, 344, 'Ø' + fmt(v.oe), true);
+    s += hole('through', 430, 256, 324, 14); s += holeLabel(430, 324, 'Ø' + fmt(v.oi), true);
     var dims = [
-      { k: 'De', x: xo0, side: 'top' }, { k: 'Fe', x: 280, side: 'top', pre: fmt(v.Ne) + ' отв. на ' },
+      { k: 'De', x: xo0, side: 'top' }, { k: 'Fe', x: 278, side: 'top', pre: fmt(v.Ne) + ' отв. на ' },
       { k: 'D1', x: xo1, side: 'top' }, { k: 'Di', x: xi1, side: 'top' },
-      { k: 'Fi', x: 420, side: 'bottom', pre: fmt(v.Ni) + ' отв. на ' }, { k: 'C', x: xi0, side: 'bottom' }
+      { k: 'Fi', x: 430, side: 'bottom', pre: fmt(v.Ni) + ' отв. на ' }, { k: 'C', x: xi0, side: 'bottom' }
     ];
-    var vd = [{ k: 'H2', y0: 230, y1: 350, x: 176, side: 'left', ext: xo0 }, { k: 'H1', y0: 250, y1: 330, x: 668, side: 'right', ext: xi1 }];
-    return { svg: s, dims: dims, vdims: vd, yTop: 230, yBot: 350 };
+    var vd = [{ k: 'H2', y0: 236, y1: 344, x: 176, side: 'left', ext: xo0 }, { k: 'H1', y0: 256, y1: 324, x: 668, side: 'right', ext: xi1 }];
+    return { svg: s, dims: dims, vdims: vd, yTop: 236, yBot: 344 };
   }
 
   /* ---------- типы. Имена по подписям серий каталога, без кодов ---------- */
