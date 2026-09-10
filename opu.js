@@ -123,6 +123,8 @@
     // верх: самая короткая ближе к детали
     top.sort(function (a, b) { return b.x - a.x; });
     bot.sort(function (a, b) { return b.x - a.x; });
+    top = top.filter(function (d) { return vals[d.k] !== undefined; });
+    bot = bot.filter(function (d) { return vals[d.k] !== undefined; });
     function one(d, y, dir) {
       var val = fmt(vals[d.k]);
       var txt = (d.pre || '') + val + (d.tol ? '<tspan class="k-tol" dy="-6">' + d.tol + '</tspan>' : '');
@@ -246,7 +248,7 @@
       dims.push({ k: 'di', x: xi0, side: sideI });
       dims.push({ k: 'Fi', x: FL.indexOf('i') >= 0 ? xi1 + 17 : (xi0 + xi1) / 2, side: sideI, pre: fmt(v.Ni) + ' отв. на ' });
       if (cfg.V) dims.push({ k: 'V', x: xi1 - 30, side: sideI });
-      if (cfg.Dci) dims.push({ k: 'Dci', x: xi1, side: sideI });
+      if (cfg.Dci) dims.push({ k: 'Dci', x: xi1 - 14, side: sideI });
       if (G === 'int') dims.push({ k: 'Dp', x: xi1 + 24, side: 'bottom' });
       dims.push({ k: 'Di', x: G === 'int' ? xi1 + 44 : (FL.indexOf('i') >= 0 ? xi1 + 34 : xi1), side: sideI, tol: cfg.tolDi });
       var vd = [
@@ -337,10 +339,10 @@
       [fld('De', 705), fld('de', 627), fld('di', 623), fld('Di', 504), fld('Dx', 547), fld('Fe', 675), fld('Fi', 575), fld('N', 32), fld('Ne', 32), fld('Ni', 32), fld('He', 83), fld('Hi', 83), fld('H', 92), fld('Hd', 74), fld('L', 25), fld('W', 9), fld('oe', 17), fld('oi', 17)].concat([fld('m', 8), fld('Z', 65), fld('x', 0)])),
 
     T('er1', 'Опорно-поворотное устройство с одним рядом перекрёстных роликов, наружное зубчатое зацепление', 'Перекрёстные ролики',
-      sceneBall({ gear: 'ext', body: 'roller', holeE: 'thread', Dci: true }),
+      sceneBall({ gear: 'ext', body: 'roller', holeE: 'thread', Dce: true, Dci: true }),
       [fld('De', 503.3), fld('Dce', 417), fld('di', 413), fld('Dci', 344), fld('Di', 342), fld('Fe', 455), fld('Ne', 20), fld('Fi', 368), fld('Ni', 24), fld('He', 44.5), fld('Hi', 44.5), fld('H', 56), fld('oe', 12, 'oeM'), fld('oi', 14)].concat([fld('m', 5), fld('Z', 99), fld('x', 0)])),
     T('zr1', 'Опорно-поворотное устройство с одним рядом перекрёстных роликов, внутреннее зубчатое зацепление', 'Перекрёстные ролики',
-      sceneBall({ gear: 'int', body: 'roller', holeI: 'thread', Dce: true }),
+      sceneBall({ gear: 'int', body: 'roller', holeI: 'thread', Dce: true, Dci: true }),
       [fld('De', 486), fld('Dce', 484), fld('de', 415), fld('Dci', 411), fld('Di', 325), fld('Fe', 460), fld('Ne', 24), fld('Fi', 375), fld('Ni', 24), fld('He', 44.5), fld('Hi', 44.5), fld('H', 56), fld('oe', 14), fld('oi', 12, 'oiM')].concat([fld('m', 5), fld('Z', 67), fld('x', 0)])),
     T('nr1', 'Опорно-поворотное устройство с одним рядом перекрёстных роликов, без зацепления', 'Перекрёстные ролики',
       sceneBall({ gear: 'none', body: 'roller', Dce: true, Dci: true }),
