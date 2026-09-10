@@ -158,8 +158,9 @@
     return '<line class="k-ext" x1="' + x + '" y1="' + (below ? y : y) + '" x2="' + x + '" y2="' + (below ? y + 16 : y - 16) + '"/>' +
       '<text class="k-txt" x="' + x + '" y="' + (below ? y + 30 : y - 20) + '" text-anchor="middle">' + esc(text) + '</text>';
   }
+  var SVG_CSS = ".k-bg{fill:#fff}.k-ring{fill:url(#k-hg);stroke:#111;stroke-width:1.5}.k-teeth{fill:url(#k-hs);stroke:#111;stroke-width:1.4}.k-white{fill:#fff;stroke:#111;stroke-width:1.2}.k-ball{fill:#fff;stroke:#111;stroke-width:1.4}.k-seal{fill:#111}.k-plug{fill:#111}.k-plug2{fill:#fff;stroke:#111;stroke-width:1}.k-cl{stroke:#111;stroke-width:.8;stroke-dasharray:10 3 2 3;fill:none}.k-thin{stroke:#111;stroke-width:.9;fill:none}.k-obj{stroke:#111;stroke-width:1.2;fill:none}.k-tooth{stroke:#111;stroke-width:1;stroke-dasharray:6 3}.k-dim{stroke:#111;stroke-width:1;fill:none}.k-ext{stroke:#111;stroke-width:.7;fill:none}.k-axis{stroke:#111;stroke-width:.8;stroke-dasharray:14 4 3 4}.k-txt{font-family:'Times New Roman',Georgia,serif;font-size:15px;fill:#111}.k-tiny{font-family:Arial,sans-serif;font-size:9px;fill:#111}.k-tol{font-size:10px}text.k-note{font-family:Arial,sans-serif;font-size:12px;fill:#6b7480}";
   function defs() {
-    return '<defs>' +
+    return '<style>' + SVG_CSS + '</style><defs>' +
       '<pattern id="k-hg" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#d6ec5e"/><line x1="0" y1="0" x2="0" y2="8" stroke="#6b7a22" stroke-width="1"/></pattern>' +
       '<pattern id="k-hs" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#c9ccd2"/><line x1="0" y1="0" x2="0" y2="8" stroke="#5e626a" stroke-width="1"/></pattern>' +
       '<marker id="k-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,1 L10,5 L0,9 z" fill="#111"/></marker>' +
@@ -476,8 +477,6 @@
     function toPNG(cb) {
       var svgEl = drawBox.querySelector('svg');
       var xml = new XMLSerializer().serializeToString(svgEl);
-      var css = document.getElementById('opu-css') ? document.getElementById('opu-css').textContent : '';
-      xml = xml.replace('<defs>', '<style>' + css + '</style><defs>');
       var img = new Image();
       var blob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
       var url = URL.createObjectURL(blob);
