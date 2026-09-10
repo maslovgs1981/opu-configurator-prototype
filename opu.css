@@ -1,24 +1,24 @@
 /* Конфигуратор ОПУ, стили виджета. Все классы с префиксом k-, чтобы не спорить со стилями сайта. */
-#opu-konfigurator, .opu-konfigurator { --k-bg:#f4f5f7; --k-card:#fff; --k-line:#d8dce2; --k-ink:#1d2229; --k-muted:#6b7480; --k-accent:#1f6feb; --k-accent2:#1858bd;
-  color:var(--k-ink); font:15px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif; }
+#opu-konfigurator, .opu-konfigurator { --k-bg:#f2f2f2; --k-card:#fff; --k-line:#dfdfdf; --k-ink:#333; --k-muted:#6f6f6f; --k-accent:#215c88; --k-btn:#ffc22e; --k-btn2:#f0b420;
+  color:var(--k-ink); font:15px/1.45 "Inter","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif; }
 #opu-konfigurator *, .opu-konfigurator * { box-sizing:border-box; }
-.k-wrap { max-width:1240px; margin:0 auto; padding:16px 16px 32px; }
+.k-wrap { max-width:1170px; margin:0 auto; padding:16px 15px 32px; }
 .k-grid { display:grid; grid-template-columns:400px 1fr; gap:18px; align-items:start; }
-.k-card { background:var(--k-card); border:1px solid var(--k-line); border-radius:12px; padding:16px; }
+.k-card { background:var(--k-card); border:1px solid var(--k-line); border-radius:6px; padding:18px; }
 .k-form label { display:block; font-size:12.5px; color:var(--k-muted); margin:0 0 4px; line-height:1.25; }
 .k-form select, .k-form input[type=number], .k-form input[type=text], .k-form textarea {
-  width:100%; padding:8px 10px; border:1px solid var(--k-line); border-radius:8px; background:#fff; color:var(--k-ink); font:inherit; }
-.k-form select:focus, .k-form input:focus, .k-form textarea:focus { outline:2px solid rgba(31,111,235,.25); border-color:var(--k-accent); }
+  width:100%; height:auto; padding:9px 12px; border:1px solid #c8c8c8; border-radius:3px; background:#fff; color:var(--k-ink); font:inherit; }
+.k-form select:focus, .k-form input:focus, .k-form textarea:focus { outline:2px solid rgba(33,92,136,.22); border-color:var(--k-accent); }
 .k-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .k-f { margin:0 0 11px; }
 .k-sect { border-top:1px solid var(--k-line); margin:14px 0 12px; padding-top:12px; }
-.k-sect-t { font-size:12px; letter-spacing:.02em; color:var(--k-muted); margin:0 0 10px; }
-.k-form button { margin-top:12px; width:100%; padding:11px 14px; border:0; border-radius:9px; background:var(--k-accent); color:#fff; font:600 15px/1 inherit; cursor:pointer; }
-.k-form button:hover { background:var(--k-accent2); }
+.k-sect-t { font-size:12px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; color:var(--k-accent); margin:0 0 10px; }
+.k-form button { margin-top:12px; width:100%; height:50px; padding:0 14px; border:0; border-radius:3px; background:var(--k-btn); color:#0f0f0f; font:700 15px/1 inherit; letter-spacing:.8px; text-transform:uppercase; box-shadow:inset 0 -3px 0 rgba(49,40,5,.15); cursor:pointer; transition:background .3s; }
+.k-form button:hover { background:var(--k-btn2); }
 .k-form button:disabled { opacity:.6; cursor:default; }
 .k-note { color:var(--k-muted); font-size:12.5px; margin-top:10px; }
-.k-ok { margin-top:10px; padding:10px 12px; border-radius:9px; background:#e8f3ea; border:1px solid #bfdcc6; font-size:13.5px; }
-.k-draw { background:#fff; border:1px solid var(--k-line); border-radius:12px; padding:6px; overflow-x:auto; }
+.k-ok { margin-top:10px; padding:10px 12px; border-radius:3px; background:#e8f3ea; border:1px solid #bfdcc6; font-size:13.5px; }
+.k-draw { background:#fff; border:1px solid var(--k-line); border-radius:6px; padding:6px; overflow-x:auto; }
 .k-plan { display:block; width:100%; height:auto; min-width:560px; }
 .k-under { margin-top:12px; border-top:1px solid var(--k-line); padding-top:10px; }
 .k-line { display:flex; justify-content:space-between; gap:12px; padding:5px 0; font-size:14px; }

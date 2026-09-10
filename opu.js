@@ -50,7 +50,10 @@
     D1:  ['Диаметр D1', 'мм'],
     C:   ['Ширина C', 'мм'],
     H1:  ['Высота H1', 'мм'],
-    H2:  ['Высота H2', 'мм']
+    H2:  ['Высота H2', 'мм'],
+    hv:  ['Выступ наружного кольца сверху', 'мм'],
+    hn:  ['Выступ наружного кольца снизу', 'мм'],
+    Vh:  ['Диаметр крепёжных отверстий V', 'мм']
   };
 
   function fld(k, def, alt) { var kk = alt || k; return { k: k, label: F[kk][0], unit: F[kk][1], def: def }; }
@@ -201,6 +204,12 @@
       if (o.holeI === 'thread') { s += hole('thread', hx2, yi0, yi1, 16, 70); s += holeLabel(hx2, yi1, 'M' + fmt(v.oi), true); }
       else { s += hole('through', hx2, yi0, yi1, 16); s += holeLabel(hx2, yi1, 'Ø' + fmt(v.oi), true); }
     }
+    // бурты центрирования у роликовых: наружное кольцо снизу, внутреннее сверху
+    if (o.collar) {
+      var up = o.gear === 'int';
+      s += up ? hatchRect(xo1 - 40, yo0 - 10, 40, 10) : hatchRect(xo1 - 40, yo1, 40, 10);
+      s += up ? hatchRect(xi0, yi1, 44, 22) : hatchRect(xi0, yi0 - 22, 44, 22);
+    }
     // дорожка и тело качения
     var r = o.r || 30;
     var cx = (xo1 + xi0) / 2;
@@ -233,7 +242,7 @@
       var yo0 = 200, yo1 = 380, yi0 = 236, yi1 = 416;   // наружное выше, внутреннее ниже
       if (G === 'int') { yo0 = 236; yo1 = 416; yi0 = 200; yi1 = 380; }
       var o = { xo0: xo0, xo1: xo1, xi0: xi0, xi1: xi1, yo0: yo0, yo1: yo1, yi0: yi0, yi1: yi1,
-        gear: G, flange: FL, body: cfg.body || 'ball', holeE: cfg.holeE, holeI: cfg.holeI, r: cfg.r };
+        gear: G, flange: FL, body: cfg.body || 'ball', holeE: cfg.holeE, holeI: cfg.holeI, r: cfg.r, collar: cfg.Dce || cfg.Dci };
       var svg = oneRow(o, v);
       var dims = [];
       var xDe = G === 'ext' ? xo0 - 34 : (FL.indexOf('e') >= 0 ? xo0 - 34 : xo0);
@@ -241,7 +250,7 @@
       dims.push({ k: 'De', x: xDe, side: G === 'int' ? 'top' : 'bottom', tol: cfg.tolDe });
       dims.push({ k: 'Fe', x: FL.indexOf('e') >= 0 ? xo0 - 17 : (xo0 + xo1) / 2, side: G === 'int' ? 'top' : 'bottom', pre: fmt(v.Ne) + ' отв. на ' });
       if (cfg.U) dims.push({ k: 'U', x: xo0 + 30, side: G === 'int' ? 'top' : 'bottom' });
-      if (cfg.Dce) dims.push({ k: 'Dce', x: xo0, side: G === 'int' ? 'top' : 'bottom' });
+      if (cfg.Dce) dims.push({ k: 'Dce', x: xo1 - 40, side: G === 'int' ? 'top' : 'bottom' });
       dims.push({ k: 'de', x: xo1, side: G === 'int' ? 'top' : 'bottom' });
       if (G === 'ext') dims.push({ k: 'Dp', x: xo0 - 20, side: 'bottom' });
       // внутреннее кольцо: di, Fi, (V/Dci), Di (+Dp у внутреннего)
@@ -249,15 +258,175 @@
       dims.push({ k: 'di', x: xi0, side: sideI });
       dims.push({ k: 'Fi', x: FL.indexOf('i') >= 0 ? xi1 + 17 : (xi0 + xi1) / 2, side: sideI, pre: fmt(v.Ni) + ' отв. на ' });
       if (cfg.V) dims.push({ k: 'V', x: xi1 - 30, side: sideI });
-      if (cfg.Dci) dims.push({ k: 'Dci', x: xi1 - 14, side: sideI });
+      if (cfg.Dci) dims.push({ k: 'Dci', x: xi0 + 44, side: sideI });
       if (G === 'int') dims.push({ k: 'Dp', x: xi1 + 24, side: 'bottom' });
       dims.push({ k: 'Di', x: G === 'int' ? xi1 + 44 : (FL.indexOf('i') >= 0 ? xi1 + 34 : xi1), side: sideI, tol: cfg.tolDi });
       var vd = [
         { k: 'He', y0: yo0, y1: yo1, x: 150, side: 'left', ext: xo0 - (G === 'ext' ? 34 : (FL.indexOf('e') >= 0 ? 34 : 0)) },
         { k: 'Hi', y0: yi0, y1: yi1, x: 640, side: 'right', ext: xi1 + (G === 'int' ? 44 : (FL.indexOf('i') >= 0 ? 34 : 0)) },
-        { k: 'H', y0: Math.min(yo0, yi0), y1: Math.max(yo1, yi1), x: 672, side: 'right', ext: xi1 + 44 }
+        { k: 'H', y0: Math.min(yo0, yi0) - (o.collar ? (G === 'int' ? 10 : 22) : 0), y1: Math.max(yo1, yi1) + (o.collar ? (G === 'int' ? 22 : 10) : 0), x: 672, side: 'right', ext: xi1 + 44 }
       ];
-      return { svg: svg, dims: dims, vdims: vd, yTop: Math.min(yo0, yi0), yBot: Math.max(yo1, yi1) };
+      return { svg: svg, dims: dims, vdims: vd, yTop: Math.min(yo0, yi0) - (o.collar ? 22 : 0), yBot: Math.max(yo1, yi1) + (o.collar ? 22 : 0) };
+    };
+  }
+
+  /* лёгкая серия ZK/NK: корпус из двух половин обнимает шарик, внутреннее кольцо с зацеплением или без */
+  function sceneLight(cfg) {
+    return function (v) {
+      var G = cfg.gear;
+      var xc0 = 236, xc1 = 300, xa1 = 412;           // левая стойка корпуса и правый край полок
+      var y0 = 210, y1 = 420, tv = 38, tn = 34;      // полная высота, верхний и нижний уступы
+      var xi0 = 432, xi1 = 566, yi0 = 250, yi1 = 400; // внутреннее кольцо
+      var s = '';
+      s += hatchPath('M' + xc0 + ',' + y0 + ' H' + xa1 + ' V' + (y0 + tv) + ' H' + xc1 + ' V' + (y1 - tn) + ' H' + xa1 + ' V' + y1 + ' H' + xc0 + ' z');
+      s += hole('through', 268, y0, y1, 16); s += holeLabel(268, y1, 'Ø' + fmt(v.oe), true);
+      // дорожка и шарик между полками и внутренним кольцом
+      var cx = 372, cy = (yi0 + yi1) / 2, r = 30;
+      s += hatchRect(xi0, yi0, xi1 - xi0, yi1 - yi0);
+      s += white(cx - r - 4, cy - r - 4, 2 * r + 8, 2 * r + 8) + ball(cx, cy, r);
+      s += '<line class="k-thin" x1="' + xc1 + '" y1="' + (y0 + tv) + '" x2="' + xa1 + '" y2="' + (y0 + tv) + '"/>';
+      s += seal(xa1 - 10, y0 + tv + 2, 1); s += seal(xa1 - 10, y1 - tn - 12, 1);
+      s += plugs(xc1 + 26, cy);
+      if (G === 'int') s += teeth('int', xi1, xi1 + 44, yi0, yi1);
+      var dims = [
+        { k: 'De', x: xc0, side: 'bottom' }, { k: 'Fe', x: 268, side: 'bottom', pre: fmt(v.Ne) + ' отв. на ' },
+        { k: 'U', x: xc1, side: 'bottom' }, { k: 'a', x: xa1, side: 'bottom' },
+        { k: 'Di', x: G === 'int' ? xi1 + 44 : xi1, side: 'top', tol: G === 'int' ? '+0,5' : '' }
+      ];
+      if (G === 'int') dims.push({ k: 'Dp', x: xi1 + 24, side: 'top' });
+      var vd = [
+        { k: 'H', y0: y0, y1: y1, x: 150, side: 'left', ext: xc0 },
+        { k: 'hv', y0: y0, y1: y0 + tv, x: 190, side: 'left', ext: xc0 },
+        { k: 'hn', y0: y1 - tn, y1: y1, x: 190, side: 'left', ext: xc0 },
+        { k: 'Hi', y0: yi0, y1: yi1, x: 660, side: 'right', ext: xi1 + (G === 'int' ? 44 : 0) }
+      ];
+      return { svg: s, dims: dims, vdims: vd, yTop: y0, yBot: y1 };
+    };
+  }
+
+  /* цековка: расширение L глубиной W со стороны from ('top'|'bottom'), дальше сквозное V */
+  function cbHole(x, y0, y1, from) {
+    var s = white(x - 8, y0, 16, y1 - y0);
+    if (from === 'top') s += white(x - 15, y0, 30, 26); else s += white(x - 15, y1 - 26, 30, 26);
+    s += cl(x, y0 - 10, y1 + 10);
+    return s;
+  }
+  function cbLabel(x, y, v, above) {
+    return '<text class="k-txt" x="' + x + '" y="' + (above ? y - 8 : y + 18) + '" text-anchor="middle">L' + fmt(v.L) + ' W' + fmt(v.W) + '</text>';
+  }
+
+  /* два ряда шариков EB2/ZB2: зубчатое кольцо цельное, ответное из двух половин */
+  function sceneBall2(cfg) {
+    return function (v) {
+      var G = cfg.gear, s = '';
+      var xo0 = 252, xo1 = 380, xi0 = 406, xi1 = 560;
+      var yo0 = 200, yo1 = 408, yi0 = 232, yi1 = 440;   // наружное выше, внутреннее ниже
+      if (G === 'int') { yo0 = 232; yo1 = 440; yi0 = 200; yi1 = 408; }
+      var hxo = (xo0 + xo1) / 2, hxi = (xi0 + xi1) / 2;
+      var split = G === 'int' ? 'outer' : 'inner';
+      // наружное кольцо
+      s += hatchRect(xo0, yo0, xo1 - xo0, yo1 - yo0);
+      if (split === 'outer') s += '<line class="k-thin" x1="' + xo0 + '" y1="' + ((yo0 + yo1) / 2) + '" x2="' + xo1 + '" y2="' + ((yo0 + yo1) / 2) + '"/>';
+      // внутреннее кольцо
+      s += hatchRect(xi0, yi0, xi1 - xi0, yi1 - yi0);
+      if (split === 'inner') s += '<line class="k-thin" x1="' + xi0 + '" y1="' + ((yi0 + yi1) / 2) + '" x2="' + xi1 + '" y2="' + ((yi0 + yi1) / 2) + '"/>';
+      // отверстия: цековка у зубчатого кольца сверху, у разрезного снизу
+      if (G === 'int') {
+        s += cbHole(hxo, yo0, yo1, 'bottom'); s += cbLabel(hxo, yo1, v, false);
+        s += holeLabel(hxo, yo0, 'Ø' + fmt(v.Vh), false);
+        s += cbHole(hxi, yi0, yi1, 'top'); s += cbLabel(hxi, yi0, v, true);
+        s += holeLabel(hxi, yi1, 'Ø' + fmt(v.Vh), true);
+      } else {
+        s += cbHole(hxo, yo0, yo1, 'top'); s += cbLabel(hxo, yo0, v, true);
+        s += holeLabel(hxo, yo1, 'Ø' + fmt(v.Vh), true);
+        s += cbHole(hxi, yi0, yi1, 'bottom'); s += cbLabel(hxi, yi1, v, false);
+        s += holeLabel(hxi, yi0, 'Ø' + fmt(v.Vh), false);
+      }
+      // два ряда шариков
+      var cx = (xo1 + xi0) / 2, cy = (Math.max(yo0, yi0) + Math.min(yo1, yi1)) / 2, r = 22;
+      s += '<rect class="k-white" x="' + (xo1 - 2) + '" y="' + Math.max(yo0, yi0) + '" width="' + (xi0 - xo1 + 4) + '" height="' + (Math.min(yo1, yi1) - Math.max(yo0, yi0)) + '"/>';
+      s += white(cx - r - 4, cy - 2 * r - 8, 2 * r + 8, 4 * r + 16);
+      s += ball(cx, cy - r - 3, r - 2) + ball(cx, cy + r + 3, r - 2);
+      s += seal(xo1 - 10, Math.max(yo0, yi0) + 6, 1); s += seal(xi0 + 10, Math.min(yo1, yi1) - 12, -1);
+      s += plugs(G === 'int' ? xo0 + 30 : xi1 - 30, cy - 34) + plugs(G === 'int' ? xo0 + 30 : xi1 - 30, cy + 34);
+      // зацепление на высоту Hd, ниже него кольцо на Dx
+      var hd = Math.max(40, Math.min(yo1 - yo0, (parseFloat(v.Hd) || 50) / (parseFloat(v.He) || 83) * (yo1 - yo0)));
+      if (G === 'ext') s += teeth('ext', xo0 - 36, xo0, yo0 + 4, yo0 + hd);
+      if (G === 'int') { s += teeth('int', xi1, xi1 + 44, yi0, yi0 + hd); }
+      var dims = [], sideO = G === 'int' ? 'top' : 'bottom', sideI = G === 'int' ? 'bottom' : 'top';
+      dims.push({ k: 'De', x: G === 'ext' ? xo0 - 36 : xo0, side: sideO });
+      if (G === 'ext') { dims.push({ k: 'Dp', x: xo0 - 20, side: sideO }); dims.push({ k: 'Dx', x: xo0, side: sideO, tol: '-0,5' }); }
+      dims.push({ k: 'Fe', x: hxo, side: sideO, pre: fmt(v.N) + ' отв. на ' });
+      dims.push({ k: 'de', x: xo1, side: sideO, tol: '+0,5' });
+      dims.push({ k: 'di', x: xi0, side: sideI, tol: '-0,5' });
+      dims.push({ k: 'Fi', x: hxi, side: sideI, pre: fmt(v.N) + ' отв. на ' });
+      if (G === 'int') { dims.push({ k: 'Dx', x: xi1 + 20, side: sideI, tol: '-0,5' }); dims.push({ k: 'Dp', x: xi1 + 24, side: sideI }); }
+      dims.push({ k: 'Di', x: G === 'int' ? xi1 + 44 : xi1, side: sideI, tol: '+0,5' });
+      var vd = [
+        { k: 'He', y0: yo0, y1: yo1, x: 150, side: 'left', ext: xo0 - (G === 'ext' ? 36 : 0) },
+        { k: 'Hi', y0: yi0, y1: yi1, x: 640, side: 'right', ext: xi1 + (G === 'int' ? 44 : 0) },
+        { k: 'Ht', y0: Math.min(yo0, yi0), y1: Math.max(yo1, yi1), x: 672, side: 'right', ext: xi1 + 44 }
+      ];
+      if (G === 'ext') vd.push({ k: 'Hd', y0: yo0, y1: yo0 + hd, x: 182, side: 'left', ext: xo0 - 36 });
+      else vd.push({ k: 'Hd', y0: yi0, y1: yi0 + hd, x: 608, side: 'right', ext: xi1 + 44 });
+      return { svg: s, dims: dims, vdims: vd, yTop: Math.min(yo0, yi0), yBot: Math.max(yo1, yi1) };
+    };
+  }
+
+  /* три ряда роликов ER3/ZR3: у зубчатого кольца нос, ответное из двух половин с пазом */
+  function sceneRoller3(cfg) {
+    return function (v) {
+      var G = cfg.gear, s = '';
+      // цельное кольцо с носом: S, разрезное с пазом: P
+      var left = G === 'ext';    // цельное слева
+      var xs0 = left ? 250 : 420, xs1 = left ? 390 : 570;
+      var xp0 = left ? 416 : 236, xp1 = left ? 570 : 400;
+      var ys0 = 200, ys1 = 420;          // цельное
+      var yp0 = 190, yp1 = 445, ysp = 310; // разрезное с линией разъёма
+      var ny0 = 290, ny1 = 330;          // нос
+      var gx0 = left ? xp0 : xp1 - 36, gx1 = left ? xp0 + 36 : xp1; // паз
+      // разрезное кольцо: верх и низ, у низа уступ до Ht
+      s += hatchPath('M' + xp0 + ',' + yp0 + ' H' + xp1 + ' V' + ysp + ' H' + xp0 + ' z');
+      s += hatchPath(left
+        ? 'M' + xp0 + ',' + ysp + ' H' + xp1 + ' V' + (yp1 - 17) + ' H' + (xp0 + 84) + ' V' + yp1 + ' H' + xp0 + ' z'
+        : 'M' + xp0 + ',' + ysp + ' H' + xp1 + ' V' + yp1 + ' H' + (xp1 - 84) + ' V' + (yp1 - 17) + ' H' + xp0 + ' z');
+      s += white(gx0, 270, 36, 80);
+      // цельное кольцо с носом в паз
+      s += hatchPath(left
+        ? 'M' + xs0 + ',' + ys0 + ' H' + xs1 + ' V' + ny0 + ' H' + (gx1 - 12) + ' V' + ny1 + ' H' + xs1 + ' V' + ys1 + ' H' + xs0 + ' z'
+        : 'M' + xs1 + ',' + ys0 + ' H' + xs0 + ' V' + ny0 + ' H' + (gx0 + 12) + ' V' + ny1 + ' H' + xs0 + ' V' + ys1 + ' H' + xs1 + ' z');
+      // ролики: два осевых над и под носом, один радиальный у торца носа
+      var rx = left ? gx0 - 22 : gx0 + 22;
+      s += rollBox(rx, 272, 50, 16) + rollBox(rx, 332, 50, 16);
+      s += rollBox(left ? gx1 - 12 : gx0, 296, 12, 28);
+      s += seal(left ? xs1 - 8 : xs0 + 8, ys0 + 6, left ? 1 : -1); s += seal(left ? xs1 - 8 : xs0 + 8, ys1 - 12, left ? 1 : -1);
+      // отверстия сквозные V в обоих кольцах
+      var hxs = (xs0 + xs1) / 2 + (left ? -22 : 22), hxp = (xp0 + xp1) / 2 + (left ? 30 : -30);
+      s += hole('through', hxs, ys0, ys1, 16); s += hole('through', hxp, yp0, yp1 - 17, 16);
+      s += holeLabel(hxs, left ? ys1 : ys0, 'Ø' + fmt(v.Vh), left);
+      s += holeLabel(hxp, left ? yp0 : yp1, 'Ø' + fmt(v.Vh), !left);
+      s += plugs(left ? xp1 - 30 : xp0 + 30, 250);
+      if (left) s += teeth('ext', xs0 - 36, xs0, ys0 + 4, ys1 - 4); else s += teeth('int', xs1, xs1 + 44, ys0, ys1);
+      var dims = [];
+      if (left) {
+        dims.push({ k: 'De', x: xs0 - 36, side: 'bottom' }, { k: 'Dp', x: xs0 - 20, side: 'bottom' },
+          { k: 'Fe', x: hxs, side: 'bottom', pre: fmt(v.N) + ' отв. на ' }, { k: 'de', x: xs1, side: 'bottom' },
+          { k: 'di', x: xp0, side: 'top' }, { k: 'Fi', x: hxp, side: 'top', pre: fmt(v.N) + ' отв. на ' }, { k: 'Di', x: xp1, side: 'top' });
+      } else {
+        dims.push({ k: 'De', x: xp0, side: 'top' }, { k: 'Fe', x: hxp, side: 'top', pre: fmt(v.N) + ' отв. на ' }, { k: 'de', x: xp1, side: 'top' },
+          { k: 'di', x: xs0, side: 'bottom' }, { k: 'Fi', x: hxs, side: 'bottom', pre: fmt(v.N) + ' отв. на ' },
+          { k: 'Dp', x: xs1 + 24, side: 'bottom' }, { k: 'Di', x: xs1 + 44, side: 'bottom' });
+      }
+      var vd = left ? [
+        { k: 'He', y0: ys0, y1: ys1, x: 150, side: 'left', ext: xs0 - 36 },
+        { k: 'Hi', y0: yp0, y1: yp1 - 17, x: 640, side: 'right', ext: xp1 },
+        { k: 'Ht', y0: yp0, y1: yp1, x: 672, side: 'right', ext: xp1 }
+      ] : [
+        { k: 'He', y0: yp0, y1: yp1 - 17, x: 176, side: 'left', ext: xp0 },
+        { k: 'Ht', y0: yp0, y1: yp1, x: 150, side: 'left', ext: xp0 },
+        { k: 'Hi', y0: ys0, y1: ys1, x: 660, side: 'right', ext: xs1 + 44 }
+      ];
+      return { svg: s, dims: dims, vdims: vd, yTop: yp0, yBot: yp1 };
     };
   }
 
@@ -303,11 +472,11 @@
 
   var TYPES = [
     T('zk', 'Лёгкая серия, один ряд шариков, внутреннее зубчатое зацепление', 'Лёгкая серия',
-      sceneBall({ gear: 'int', flange: 'e', U: true, tolDi: '+0,5' }),
-      [fld('De', 498), fld('U', 432), fld('a', 384), fld('de', 340), fld('di', 336), fld('Di', 331), fld('Fe', 470), fld('Ne', 16), fld('Fi', 400), fld('Ni', 16), fld('He', 61), fld('Hi', 61), fld('H', 82), fld('oe', 17), fld('oi', 17)].concat([fld('m', 5), fld('Z', 68), fld('x', 0)])),
+      sceneLight({ gear: 'int' }),
+      [fld('De', 498), fld('U', 432), fld('a', 384), fld('Di', 331), fld('Fe', 470), fld('Ne', 16), fld('oe', 17), fld('H', 82), fld('Hi', 59), fld('hv', 15.5), fld('hn', 14)].concat([fld('m', 5), fld('Z', 68), fld('x', 0)])),
     T('nk', 'Лёгкая серия, один ряд шариков, без зацепления', 'Лёгкая серия',
-      sceneBall({ gear: 'none', flange: 'e', U: true }),
-      [fld('De', 498), fld('U', 432), fld('a', 384), fld('de', 340), fld('di', 336), fld('Di', 331), fld('Fe', 470), fld('Ne', 16), fld('Fi', 400), fld('Ni', 16), fld('He', 61), fld('Hi', 61), fld('H', 82), fld('oe', 17), fld('oi', 17)]),
+      sceneLight({ gear: 'none' }),
+      [fld('De', 498), fld('U', 432), fld('a', 384), fld('Di', 331), fld('Fe', 470), fld('Ne', 16), fld('oe', 17), fld('H', 82), fld('Hi', 59), fld('hv', 15.5), fld('hn', 14)]),
 
     T('ebl', 'Фланцевое опорно-поворотное устройство, один ряд шариков, наружное зубчатое зацепление', 'Фланцевые серии',
       sceneBall({ gear: 'ext', flange: 'i', V: true, holeE: 'thread', tolDe: '-0,5', tolDi: '+0,5' }),
@@ -336,11 +505,11 @@
       [fld('De', 386), fld('de', 315.5), fld('di', 312.5), fld('Di', 242), fld('Fe', 360), fld('Ne', 20), fld('Fi', 268), fld('Ni', 20), fld('He', 45.5), fld('Hi', 45.5), fld('H', 56), fld('oe', 14), fld('oi', 14)]),
 
     T('eb2', 'Опорно-поворотное устройство с двумя рядами шариков, наружное зубчатое зацепление', 'Два ряда шариков',
-      sceneBall({ gear: 'ext', body: 'ball2', r: 22, tolDi: '+0,5' }),
-      [fld('De', 432), fld('de', 309), fld('di', 305), fld('Di', 224), fld('Dx', 394), fld('Fe', 360), fld('Fi', 254), fld('N', 16), fld('Ne', 16), fld('Ni', 16), fld('He', 83), fld('Hi', 83), fld('H', 92), fld('Hd', 50), fld('L', 25), fld('W', 12), fld('oe', 17), fld('oi', 17)].concat([fld('m', 6), fld('Z', 70), fld('x', 0)])),
+      sceneBall2({ gear: 'ext' }),
+      [fld('De', 432), fld('de', 309), fld('di', 305), fld('Di', 224), fld('Dx', 394), fld('Fe', 360), fld('Fi', 254), fld('N', 16), fld('Vh', 17), fld('L', 25), fld('W', 12), fld('He', 83), fld('Hi', 83), fld('Ht', 92), fld('Hd', 50)].concat([fld('m', 6), fld('Z', 70), fld('x', 0)])),
     T('zb2', 'Опорно-поворотное устройство с двумя рядами шариков, внутреннее зубчатое зацепление', 'Два ряда шариков',
-      sceneBall({ gear: 'int', body: 'ball2', r: 22, tolDe: '-0,5' }),
-      [fld('De', 705), fld('de', 627), fld('di', 623), fld('Di', 504), fld('Dx', 547), fld('Fe', 675), fld('Fi', 575), fld('N', 32), fld('Ne', 32), fld('Ni', 32), fld('He', 83), fld('Hi', 83), fld('H', 92), fld('Hd', 74), fld('L', 25), fld('W', 9), fld('oe', 17), fld('oi', 17)].concat([fld('m', 8), fld('Z', 65), fld('x', 0)])),
+      sceneBall2({ gear: 'int' }),
+      [fld('De', 705), fld('de', 627), fld('di', 623), fld('Di', 504), fld('Dx', 547), fld('Fe', 675), fld('Fi', 575), fld('N', 32), fld('Vh', 17), fld('L', 25), fld('W', 9), fld('He', 83), fld('Hi', 83), fld('Ht', 92), fld('Hd', 74)].concat([fld('m', 8), fld('Z', 65), fld('x', 0)])),
 
     T('er1', 'Опорно-поворотное устройство с одним рядом перекрёстных роликов, наружное зубчатое зацепление', 'Перекрёстные ролики',
       sceneBall({ gear: 'ext', body: 'roller', holeE: 'thread', Dce: true, Dci: true }),
@@ -353,11 +522,11 @@
       [fld('De', 486), fld('Dce', 484), fld('de', 415), fld('di', 413), fld('Dci', 344), fld('Di', 342), fld('Fe', 460), fld('Ne', 24), fld('Fi', 368), fld('Ni', 24), fld('He', 44.5), fld('Hi', 44.5), fld('H', 56), fld('oe', 14), fld('oi', 14)]),
 
     T('er3', 'Опорно-поворотное устройство с тремя рядами роликов, наружное зубчатое зацепление', 'Три ряда роликов',
-      sceneBall({ gear: 'ext', body: 'roller3', r: 24 }),
-      [fld('De', 1461.6), fld('de', 1282), fld('di', 1280), fld('Di', 1103), fld('Fe', 1355), fld('Fi', 1155), fld('N', 36), fld('Ne', 36), fld('Ni', 36), fld('He', 106), fld('Hi', 123), fld('H', 132), fld('V', 26), fld('oe', 26), fld('oi', 26)].concat([fld('m', 12), fld('Z', 119), fld('x', 0.5)])),
+      sceneRoller3({ gear: 'ext' }),
+      [fld('De', 1461.6), fld('de', 1282), fld('di', 1280), fld('Di', 1103), fld('Fe', 1355), fld('Fi', 1155), fld('N', 36), fld('Vh', 26), fld('He', 106), fld('Hi', 123), fld('Ht', 132)].concat([fld('m', 12), fld('Z', 119), fld('x', 0.5)])),
     T('zr3', 'Опорно-поворотное устройство с тремя рядами роликов, внутреннее зубчатое зацепление', 'Три ряда роликов',
-      sceneBall({ gear: 'int', body: 'roller3', r: 24 }),
-      [fld('De', 1397), fld('de', 1219), fld('di', 1218), fld('Di', 1032), fld('Fe', 1345), fld('Fi', 1145), fld('N', 36), fld('Ne', 36), fld('Ni', 36), fld('He', 123), fld('Hi', 106), fld('H', 132), fld('V', 26), fld('oe', 26), fld('oi', 26)].concat([fld('m', 12), fld('Z', 87), fld('x', -0.5)])),
+      sceneRoller3({ gear: 'int' }),
+      [fld('De', 1397), fld('de', 1219), fld('di', 1218), fld('Di', 1032), fld('Fe', 1345), fld('Fi', 1145), fld('N', 36), fld('Vh', 26), fld('He', 123), fld('Hi', 106), fld('Ht', 132)].concat([fld('m', 12), fld('Z', 87), fld('x', -0.5)])),
 
     T('crb', 'Прецизионная серия с перекрёстными роликами', 'Прецизионные подшипники',
       scenePrecisionCR,
@@ -428,8 +597,8 @@
       var h = '';
       var groups = [
         ['Диаметры, мм', ['De','Dce','U','a','de','Dx','di','Dci','V','Di','D','d','Dp','ds','dh','D1','C']],
-        ['Высоты, мм', ['H','He','Hi','Ht','Hd','B','H1','H2','L','W']],
-        ['Крепёжные отверстия', ['Fe','Ne','oe','Fi','Ni','oi','N','ge','gi','he','hi','hl']],
+        ['Высоты, мм', ['H','He','Hi','Ht','Hd','hv','hn','B','H1','H2']],
+        ['Крепёжные отверстия', ['Fe','Ne','oe','Fi','Ni','oi','N','Vh','L','W','ge','gi','he','hi','hl']],
         ['Зубчатое зацепление', ['m','Z','x']]
       ];
       groups.forEach(function (g) {
