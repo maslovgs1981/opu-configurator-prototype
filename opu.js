@@ -202,9 +202,10 @@
     var r = o.r || 30;
     var cx = (xo1 + xi0) / 2;
     s += '<rect class="k-white" x="' + (xo1 - 2) + '" y="' + (yo0) + '" width="' + (xi0 - xo1 + 4) + '" height="' + (yo1 - yo0) + '"/>';
-    s += white(cx - r - 4, cy - r - 4, 2 * r + 8, 2 * r + 8);
+    var rh = (o.body === 'ball2' || o.body === 'roller3') ? 2 * r + 8 : r + 4;
+    s += white(cx - r - 4, cy - rh, 2 * r + 8, 2 * rh);
     if (o.body === 'roller') s += roller(cx, cy, r);
-    else if (o.body === 'ball2') { s += ball(cx, cy - r - 4, r); s += ball(cx, cy + r + 4, r); }
+    else if (o.body === 'ball2') { s += ball(cx, cy - r - 3, r - 2); s += ball(cx, cy + r + 3, r - 2); }
     else if (o.body === 'roller3') {
       s += rollBox(cx - r - 6, cy - r - 10, 2 * r + 12, 18);
       s += rollBox(cx - r - 6, cy + r - 8, 2 * r + 12, 18);
@@ -297,7 +298,7 @@
   var TYPES = [
     T('zk', 'Лёгкая серия, один ряд шариков, внутреннее зубчатое зацепление', 'Лёгкая серия',
       sceneBall({ gear: 'int', flange: 'e', U: true, tolDi: '+0,5' }),
-      [fld('De', 498), fld('U', 432), fld('a', 384), fld('de', 340), fld('di', 336), fld('Di', 331), fld('Fe', 470), fld('Ne', 16), fld('Fi', 400), fld('Ni', 16), fld('He', 61), fld('Hi', 61), fld('H', 82), fld('oe', 17), fld('oi', 17)].concat(GEAR)),
+      [fld('De', 498), fld('U', 432), fld('a', 384), fld('de', 340), fld('di', 336), fld('Di', 331), fld('Fe', 470), fld('Ne', 16), fld('Fi', 400), fld('Ni', 16), fld('He', 61), fld('Hi', 61), fld('H', 82), fld('oe', 17), fld('oi', 17)].concat([fld('m', 5), fld('Z', 68), fld('x', 0)])),
     T('nk', 'Лёгкая серия, один ряд шариков, без зацепления', 'Лёгкая серия',
       sceneBall({ gear: 'none', flange: 'e', U: true }),
       [fld('De', 498), fld('U', 432), fld('a', 384), fld('de', 340), fld('di', 336), fld('Di', 331), fld('Fe', 470), fld('Ne', 16), fld('Fi', 400), fld('Ni', 16), fld('He', 61), fld('Hi', 61), fld('H', 82), fld('oe', 17), fld('oi', 17)]),
