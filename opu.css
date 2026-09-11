@@ -45,3 +45,5 @@
 .k-tol { font-size:10px; }
 .k-note { }
 text.k-note { font-family:Arial,sans-serif; font-size:12px; fill:#6b7480; }
+.k-patch { fill:#fff; }
+.k-mark { font-family:Arial,Helvetica,sans-serif; fill:#111; font-weight:600; }

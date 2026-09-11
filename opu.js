@@ -466,11 +466,71 @@
   }
 
   /* ---------- типы. Имена по подписям серий каталога, без кодов ---------- */
-  function T(id, name, group, scene, fields) { return { id: id, name: name, group: group, scene: scene, fields: fields }; }
+  function T(id, name, group, scene, fields, ext) {
+    var t = { id: id, name: name, group: group, scene: scene, fields: fields };
+    if (ext) for (var k in ext) t[k] = ext[k];
+    return t;
+  }
+
+  /* ---------- типы на готовой картинке: подложка jpg, поверх буквы и значения ---------- */
+  var IMG = {};   // src -> data URL, чтобы SVG с картинкой уходил в PNG
+  function loadImg(src, cb) {
+    if (IMG[src]) { cb(IMG[src]); return; }
+    var im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = function () {
+      try { var c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+        c.getContext('2d').drawImage(im, 0, 0); IMG[src] = c.toDataURL('image/jpeg', 0.92); } catch (e) { IMG[src] = src; }
+      cb(IMG[src]);
+    };
+    im.onerror = function () { IMG[src] = src; cb(src); };
+    im.src = src;
+  }
+  function tpl(t, v) {
+    var miss = false;
+    var out = t.replace(/\{(\w+)\}/g, function (m, k) {
+      if (v[k] === undefined || v[k] === '' || v[k] === null) { miss = true; return ''; }
+      return fmt(v[k]);
+    });
+    return miss ? '' : out;
+  }
+  function drawIMG(type, v, opts) {
+    var W = type.w, H = type.h, band = 40, fs = type.fs || 15;
+    var s = '<svg class="k-plan" viewBox="0 0 ' + W + ' ' + (H + band) + '" xmlns="http://www.w3.org/2000/svg">';
+    s += '<rect x="0" y="0" width="' + W + '" height="' + (H + band) + '" fill="#fff"/>';
+    s += '<image href="' + esc(IMG[type.img] || type.img) + '" x="0" y="0" width="' + W + '" height="' + H + '" preserveAspectRatio="none"/>';
+    if (opts && opts.watermark) s += opts.watermark;   // знак под подписями, чтобы цифры читались
+    type.marks.forEach(function (m) {
+      var txt = tpl(m.t, v);
+      if (!txt) return;
+      var f = m.fs || fs, w = Math.max(m.w, txt.length * f * 0.58 + 10), cy = m.y + m.h / 2;
+      var x0 = m.a === 'l' ? m.x : m.a === 'r' ? m.x + m.w - w : m.x + m.w / 2 - w / 2;   // a: l растёт вправо, r растёт влево
+      s += '<rect x="' + x0 + '" y="' + m.y + '" width="' + w + '" height="' + m.h + '" fill="#fff"/>';
+      s += '<text x="' + (x0 + w / 2) + '" y="' + (cy + f * 0.36) + '" font-size="' + f + '" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="600" fill="#111">' + esc(txt) + '</text>';
+    });
+    s += '<text x="16" y="' + (H + 26) + '" font-family="Arial,sans-serif" font-size="12" fill="#6b7480">Размеры справочные, точные подтверждает инженер.</text>';
+    s += '</svg>';
+    return s;
+  }
   var HOLES_T = [fld('oe', 18), fld('oi', 12), fld('gi', 20)];
   var GEAR = [fld('m', 5), fld('Z', 79), fld('x', 0)];
 
   var TYPES = [
+    T('primer', 'Однорядный шариковый, внутреннее зацепление, образец на jpg', 'Образец на готовой картинке', null,
+      [fld('De', 600), fld('Fe', 570), fld('Ne', 12), fld('oeM', 10), fld('H', 60), fld('hv', 12), fld('hn', 12), fld('He', 38), fld('Hi', 36), fld('m', 5), fld('Z', 92), fld('x', 0)],
+      { img: 'img/primer.jpg', w: 741, h: 680, gear: 'int', marks: [
+        { x: 488, y: 70, w: 135, h: 24, t: 'm={m}  Z={Z}  x={x}' },
+        { x: 555, y: 148, w: 45, h: 22, t: 'Dp {Dp}' },
+        { x: 570, y: 172, w: 45, h: 22, t: 'Da {Da}' },
+        { x: 208, y: 164, w: 88, h: 22, t: 'Ne {Ne}-M{oeM}' },
+        { x: 108, y: 238, w: 28, h: 22, t: 'hv {hv}' },
+        { x: 52, y: 343, w: 32, h: 24, t: 'H {H}' },
+        { x: 606, y: 316, w: 32, h: 24, t: 'Hi {Hi}', a: 'r' },
+        { x: 652, y: 310, w: 32, h: 24, t: 'He {He}', a: 'l' },
+        { x: 216, y: 391, w: 90, h: 22, t: 'Ne {Ne}-M{oeM}' },
+        { x: 150, y: 457, w: 28, h: 24, t: 'hn {hn}' },
+        { x: 420, y: 572, w: 45, h: 24, t: 'Fe {Fe}' },
+        { x: 436, y: 602, w: 45, h: 24, t: 'De {De}' }
+      ] }),
     T('zk', 'Лёгкая серия, один ряд шариков, внутреннее зубчатое зацепление', 'Лёгкая серия',
       sceneLight({ gear: 'int' }),
       [fld('De', 498), fld('U', 432), fld('a', 384), fld('Di', 331), fld('Fe', 470), fld('Ne', 16), fld('oe', 17), fld('H', 82), fld('Hi', 59), fld('hv', 15.5), fld('hn', 14)].concat([fld('m', 5), fld('Z', 68), fld('x', 0)])),
@@ -538,6 +598,7 @@
 
   /* ---------- сборка чертежа ---------- */
   function drawSVG(type, v, opts) {
+    if (type.img) return drawIMG(type, v, opts);
     var sc = type.scene(v);
     var s = '<svg class="k-plan" viewBox="' + VB.join(' ') + '" xmlns="http://www.w3.org/2000/svg">' + defs();
     s += '<rect class="k-bg" x="0" y="0" width="780" height="600"/>';
@@ -557,6 +618,8 @@
   /* ---------- виджет ---------- */
   function build(root) {
     var endpoint = root.getAttribute('data-endpoint') || '';
+    var base = root.getAttribute('data-base') || '';   // папка с картинками типов, например /opu/
+    if (base) TYPES.forEach(function (t) { if (t.img && !/^(\/|https?:|data:)/.test(t.img)) t.img = base.replace(/\/?$/, '/') + t.img; });
     var logo = root.getAttribute('data-logo') || '';
     if (logo && logo.indexOf('data:') !== 0) {
       (function (src) {
@@ -598,7 +661,7 @@
       var groups = [
         ['Диаметры, мм', ['De','Dce','U','a','de','Dx','di','Dci','V','Di','D','d','Dp','ds','dh','D1','C']],
         ['Высоты, мм', ['H','He','Hi','Ht','Hd','hv','hn','B','H1','H2']],
-        ['Крепёжные отверстия', ['Fe','Ne','oe','Fi','Ni','oi','N','Vh','L','W','ge','gi','he','hi','hl']],
+        ['Крепёжные отверстия', ['Fe','Ne','oe','oeM','Fi','Ni','oi','oiM','N','Vh','L','W','ge','gi','he','hi','hl']],
         ['Зубчатое зацепление', ['m','Z','x']]
       ];
       groups.forEach(function (g) {
@@ -617,12 +680,16 @@
     function values() {
       var v = {};
       cur.fields.forEach(function (f) { v[f.k] = form[f.k].value; });
-      if (v.m && v.Z) v.Dp = parseFloat(v.m) * parseFloat(v.Z) + 2 * parseFloat(v.m) * (parseFloat(v.x) || 0);
+      if (v.m && v.Z) {
+        v.Dp = parseFloat(v.m) * parseFloat(v.Z) + 2 * parseFloat(v.m) * (parseFloat(v.x) || 0);
+        v.Da = v.Dp + (cur.gear === 'int' ? -2 : 2) * parseFloat(v.m);
+      }
       return v;
     }
     function watermark() {
       if (!logo) return '';
-      return '<image class="k-wm" href="' + esc(logo) + '" x="300" y="200" width="200" height="200" opacity="0.18" preserveAspectRatio="xMidYMid meet"/>';
+      var W = cur.img ? cur.w : 780, H = cur.img ? cur.h : 600, sz = Math.round(Math.min(W, H) * 0.33);
+      return '<image class="k-wm" href="' + esc(logo) + '" x="' + Math.round((W - sz) / 2) + '" y="' + Math.round((H - sz) / 2) + '" width="' + sz + '" height="' + sz + '" opacity="0.18" preserveAspectRatio="xMidYMid meet"/>';
     }
     function redraw() {
       var v = values();
@@ -638,6 +705,7 @@
       cur = TYPES.filter(function (t) { return t.id === id; })[0] || TYPES[0];
       renderFields(cur);
       redraw();
+      if (cur.img && !IMG[cur.img]) loadImg(cur.img, function () { redraw(); });
     }
     sel.addEventListener('change', function () { setType(sel.value); });
     form.addEventListener('input', function (e) { if (e.target.tagName === 'INPUT' && e.target.type === 'number') redraw(); });
@@ -650,7 +718,8 @@
       var blob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
       var url = URL.createObjectURL(blob);
       img.onload = function () {
-        var c = document.createElement('canvas'); c.width = 1560; c.height = 1200;
+        var c = document.createElement('canvas');
+        if (cur.img) { c.width = cur.w * 2; c.height = (cur.h + 40) * 2; } else { c.width = 1560; c.height = 1200; }
         var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
         g.drawImage(img, 0, 0, c.width, c.height);
         URL.revokeObjectURL(url);
